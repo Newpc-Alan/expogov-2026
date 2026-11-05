@@ -89,6 +89,14 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .item .t i{font-style:normal;color:var(--goldt);font-size:.78em;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:.15em}
 .item .q{font-size:.76em;color:var(--ink2);margin-top:.25em;font-weight:500}
 .item .s{display:inline-flex;align-items:center;gap:.35em;margin-top:.4em;font-size:.72em;font-weight:800;color:#fff;background:var(--ink);border-radius:2em;padding:.2em .7em}
+.pal{display:flex;align-items:center;gap:.6em;margin-top:.35em}
+.avs{display:flex}
+.av{width:2.4em;height:2.4em;border-radius:50%;border:.15em solid #fff;background:linear-gradient(135deg,var(--gold2),var(--gold));color:var(--ink);font-weight:800;font-size:.72em;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto;box-shadow:0 .1em .4em rgba(0,0,0,.15)}
+.av+.av{margin-left:-.7em}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.dest .av{border-color:rgba(255,255,255,.7)}
+.dest.prox .av{background:linear-gradient(135deg,#4a4842,#2B2A26);color:var(--gold2)}
+.item .q{margin-top:0}
 .tag-conf{display:inline-block;margin-left:.5em;font-size:.68em;font-weight:800;color:var(--laranja)}
 .vazio{color:var(--ink2);font-size:.85em;padding:2vw 0}
 
@@ -359,6 +367,24 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
     PROG.forEach(function(a){ a.sOrig = a.sOrig || a.s; a.s = aj[a.id] || a.sOrig; });
   }
 
+
+  /* fotos oficiais dos palestrantes: preencher com as imagens enviadas pela organização */
+  var FOTOS = {};
+  function pessoas(q){
+    if (!q) return [];
+    var nomes = q.split('·')[0].replace(/^(Ministro|Min\.)\s+/i, '');
+    return nomes.split(/,\s*|\s+e\s+/).map(function(n){ return n.trim(); }).filter(Boolean);
+  }
+  function chave(n){ return n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z ]/g, '').trim(); }
+  function iniciais(n){ var p = n.split(/\s+/); return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase(); }
+  function avatares(q){
+    var ps = pessoas(q);
+    if (!ps.length) return '';
+    return '<span class="avs">' + ps.map(function(n){
+      var f = FOTOS[chave(n)];
+      return '<span class="av" title="' + esc(n) + '">' + (f ? '<img src="' + f + '" alt="' + esc(n) + '">' : esc(iniciais(n))) + '</span>';
+    }).join('') + '</span>';
+  }
   function $(id){ return document.getElementById(id); }
   function toast(t){ var el = $('toast'); el.textContent = t; el.classList.add('on'); setTimeout(function(){ el.classList.remove('on'); }, 2400); }
   function esc(t){ return String(t == null ? '' : t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
@@ -406,7 +432,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
     return 'futuro';
   }
 
-  function horario(a){ return a.i ? a.i + (a.f && a.f !== a.i ? '<small>até ' + a.f + '</small>' : '') : 'Ao longo<small>do dia</small>'; }
+  function horario(a){ if (!a.i) return a.c === false ? 'A<small>confirmar</small>' : 'Ao longo<small>do dia</small>'; return a.i + (a.f && a.f !== a.i ? '<small>até ' + a.f + '</small>' : ''); }
 
   function renderDestaques(){
     var doDia = ordenar(PROG.filter(function(a){ return a.d === diaSel && a.i && a.c !== false; }));
@@ -414,7 +440,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
     var prox = doDia.filter(function(a){ return estado(a) === 'futuro'; });
     function card(a, rot, cls){
       if (!a) return '<div class="dest ' + cls + '"><div class="r">' + rot + '</div><b>Nada neste horário</b><span>Aproveite para visitar a feira</span></div>';
-      return '<div class="dest ' + cls + '" data-action="item" data-id="' + a.id + '"><div class="r">' + rot + ' · ' + a.i + '</div><b>' + esc(a.k) + '</b><span>' + esc(SALAS[a.s].n) + '</span></div>';
+      return '<div class="dest ' + cls + '" data-action="item" data-id="' + a.id + '"><div class="r">' + rot + ' · ' + a.i + '</div><b>' + esc(a.k) + '</b>' + (a.q ? '<div class="pal">' + avatares(a.q) + '<span style="margin:0">' + esc(SALAS[a.s].n) + '</span></div>' : '<span>' + esc(SALAS[a.s].n) + '</span>') + '</div>';
     }
     var principal = agoraL.filter(function(a){ return a.s === 'aud999'; })[0] || agoraL[0];
     $('destaques').innerHTML = card(principal, 'Agora', '') + card(prox[0], 'A seguir', 'prox');
@@ -428,7 +454,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
       return '<button class="item ' + (st === 'agora' ? 'agora ' : '') + (st === 'passou' ? 'passou ' : '') + (itemSel === a.id ? 'on' : '') + '" data-action="item" data-id="' + a.id + '">' +
         '<div class="h">' + horario(a) + '</div>' +
         '<div><div class="t"><i>' + esc(a.t) + (st === 'agora' ? ' · acontecendo agora' : '') + '</i>' + esc(a.k) + (a.c === false ? '<span class="tag-conf">horário a confirmar</span>' : '') + '</div>' +
-        (a.q ? '<div class="q">' + esc(a.q) + '</div>' : '') +
+        (a.q ? '<div class="pal">' + avatares(a.q) + '<div class="q">' + esc(a.q) + '</div></div>' : '') +
         '<span class="s">' + esc(SALAS[a.s].n) + '</span></div></button>';
     }).join('');
   }
