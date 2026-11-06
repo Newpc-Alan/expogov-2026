@@ -150,6 +150,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .perfil .pc-x{position:absolute;top:.6em;right:.6em;width:2em;height:2em;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:1em;font-weight:800;line-height:2em;text-align:center}
 .perfil .pc-dica{text-align:center;font-size:.6em;color:var(--ink2);margin-top:1em}
 .av[data-action]{cursor:pointer}
+.pn{cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.2em;text-decoration-thickness:.12em}
 .pin{position:fixed;inset:0;background:rgba(5,15,28,.85);z-index:60;display:none;align-items:center;justify-content:center}
 .pin.on{display:flex}
 .pin .box{background:#fff;color:var(--ink);border-radius:16px;padding:22px;width:300px;text-align:center;font-size:16px}
@@ -408,6 +409,13 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
   }
   function chave(n){ return n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z ]/g, '').trim(); }
   function iniciais(n){ var p = n.split(/\s+/); return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase(); }
+  function nomesClic(q){
+    var ps = pessoas(q), resto = q.indexOf('·') >= 0 ? ' · ' + q.split('·').slice(1).join('·').trim() : '';
+    var pre = /^(Ministro|Min\.)\s+/i.test(q) ? 'Min. ' : '';
+    return pre + ps.map(function(n, i){
+      return (i === 0 ? '' : (i === ps.length - 1 ? ' e ' : ', ')) + '<span class="pn" data-action="pessoa" data-nome="' + esc(n) + '">' + esc(n) + '</span>';
+    }).join('') + esc(resto);
+  }
   function avatares(q){
     var ps = pessoas(q);
     if (!ps.length) return '';
@@ -502,11 +510,11 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
     if (!doDia.length){ $('lista').innerHTML = '<div class="vazio">Sem atividades neste dia.</div>'; return; }
     $('lista').innerHTML = doDia.map(function(a){
       var st = estado(a);
-      return '<button class="item ' + (st === 'agora' ? 'agora ' : '') + (st === 'passou' ? 'passou ' : '') + (itemSel === a.id ? 'on' : '') + '" data-action="item" data-id="' + a.id + '">' +
+      return '<div role="button" tabindex="0" class="item ' + (st === 'agora' ? 'agora ' : '') + (st === 'passou' ? 'passou ' : '') + (itemSel === a.id ? 'on' : '') + '" data-action="item" data-id="' + a.id + '">' +
         '<div class="h">' + horario(a) + '</div>' +
         '<div><div class="t"><i>' + esc(a.t) + (st === 'agora' ? ' · acontecendo agora' : '') + '</i>' + esc(a.k) + (a.c === false ? '<span class="tag-conf">horário a confirmar</span>' : '') + '</div>' +
-        (a.q ? '<div class="pal">' + avatares(a.q) + '<div class="q">' + esc(a.q) + '</div></div>' : '') +
-        '<span class="s">' + esc(SALAS[a.s].n) + '</span></div></button>';
+        (a.q ? '<div class="pal">' + avatares(a.q) + '<div class="q">' + nomesClic(a.q) + '</div></div>' : '') +
+        '<span class="s">' + esc(SALAS[a.s].n) + '</span></div></div>';
     }).join('');
   }
 
@@ -596,6 +604,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
     else if (acao === 'admin-fechar') $('admin').classList.remove('on');
   });
   document.addEventListener('touchstart', mexeu, { passive: true });
+  document.addEventListener('keydown', function(e){ if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('item')){ e.preventDefault(); e.target.click(); } if (e.key === 'Escape') fecharPerfil(); });
   $('pin-campo').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); if ($('pin-campo').value === PIN){ $('pin').classList.remove('on'); abrirAdmin(); } else toast('PIN incorreto'); } });
 
   if (VIA_QR){ $('pino-txt').textContent = 'Estande NEWPC'; }
