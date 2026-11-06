@@ -151,6 +151,30 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
 .perfil .pc-dica{text-align:center;font-size:.6em;color:var(--ink2);margin-top:1em}
 .av[data-action]{cursor:pointer}
 .pn{cursor:pointer;text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.2em;text-decoration-thickness:.12em}
+
+/* TELA HORIZONTAL (TV 55" deitada): mapa à esquerda, programação à direita */
+html.h body{font-size:clamp(13px,2.05vh,30px)}
+html.h .app{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"topo topo" "mapa prog" "atalhos aviso" "rodape rodape"}
+html.h .topo{grid-area:topo;padding:1.6vh 2.2vw 1.4vh;border-bottom-width:.6vh}
+html.h .topo h1{font-size:2em}
+html.h .mapa-box{grid-area:mapa;margin:1.6vh 1vw 0 1.6vw;display:flex;align-items:center;justify-content:center;border-radius:1.4vh}
+html.h .mapa-box svg{width:100%;height:100%;max-height:100%}
+html.h .atalhos{grid-area:atalhos;padding:1.2vh 1vw 1.2vh 1.6vw;gap:.8vw;flex-wrap:wrap;overflow:visible}
+html.h .chip{font-size:.8em;padding:.6em 1em}
+html.h .prog{grid-area:prog;padding:1.6vh 1.6vw 0 .6vw}
+html.h .dias{gap:.6vw}
+html.h .destaques{gap:.8vw;margin-top:1.2vh}
+html.h .dest{border-radius:1.4vh;padding:1.2vh 1vw}
+html.h .lista{margin-top:1.2vh}
+html.h .item{gap:.8vw;padding:1vh .9vw;border-radius:1.2vh;margin-bottom:.8vh}
+html.h .item.agora{border-left-width:.6vh}
+html.h .item{font-size:.86em;grid-template-columns:4.6em 1fr}
+html.h .item .av{width:4em;height:4em}
+html.h .item .pal{margin:.3em 0}
+html.h .aviso{grid-area:aviso;align-self:center;padding:0 1.6vw 0 .6vw}
+html.h .rodape{grid-area:rodape;padding:.8vh 2.2vw;gap:2vw}
+html.h .rodape .marca svg{height:2em}
+html.h .qr .q{width:4.6em;height:4.6em;border-radius:.8vh;padding:.4vh}
 .pin{position:fixed;inset:0;background:rgba(5,15,28,.85);z-index:60;display:none;align-items:center;justify-content:center}
 .pin.on{display:flex}
 .pin .box{background:#fff;color:var(--ink);border-radius:16px;padding:22px;width:300px;text-align:center;font-size:16px}
@@ -178,10 +202,21 @@ button{font-family:inherit;color:inherit;border:none;background:none;cursor:poin
   html,body{overflow:auto;height:auto}.app{height:auto;min-height:100%}.lista{overflow:visible}
 }
 </style>
+<script>
+/* escolhe o layout: ?tela=h (horizontal) ou ?tela=v (vertical); sem parâmetro, detecta pela orientação da tela */
+(function(){
+  var p = (location.search.match(/[?&]tela=([hv])/) || [])[1];
+  function ajusta(){
+    var h = p ? p === 'h' : (window.innerWidth > window.innerHeight * 1.2 && window.innerHeight >= 600);
+    document.documentElement.classList.toggle('h', h);
+  }
+  ajusta(); window.addEventListener('resize', ajusta);
+})();
+</script>
 </head>
 <body>
 <div class="app">
-  <header class="topo">
+  <header class="topo" style="grid-area:topo">
     <div>
       <h1 data-action="toque-titulo">Mapa e <em>programação</em></h1>
       <div class="sub"><b>8º SENACOP 2026</b> · Centro de Convenções Rubens Gil de Camillo</div>
