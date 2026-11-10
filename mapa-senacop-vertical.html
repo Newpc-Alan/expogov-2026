@@ -496,7 +496,7 @@ html.h .qr .q{width:4.6em;height:4.6em;border-radius:.8vh;padding:.4vh}
       '<div class="pc-nome"><small>Palestrante · 8º SENACOP</small><b id="pc-nome">' + esc(/zymler/i.test(nome) ? 'Min. ' + nome : nome) + '</b></div></div>' +
       '<div class="pc-corpo">' + (bio ? '<p class="pc-bio">' + esc(bio) + '</p>' : '<p class="pc-bio vazia">Minicurrículo não divulgado na programação oficial.</p>') +
       (ativ.length ? '<h4>Na programação</h4>' + ativ.map(function(a){
-        return '<button type="button" class="pc-ativ" data-action="perfil-item" data-id="' + a.id + '"><i>' + nomeDia[a.d] + (a.i ? ' · ' + a.i : '') + '</i>' + esc(a.k) + '<em>' + esc(a.t) + ' · ' + esc(SALAS[a.s].n) + '</em></button>';
+        return '<button type="button" class="pc-ativ" data-action="perfil-item" data-id="' + a.id + '"><i>' + nomeDia[a.d] + (a.i ? ' · ' + a.i : '') + '</i>' + esc(a.k) + '<em>' + esc(a.t === SALAS[a.s].n ? a.t : a.t + ' · ' + SALAS[a.s].n) + '</em></button>';
       }).join('') : '') +
       '<div class="pc-dica">Toque fora do quadro para fechar</div></div>';
     $('perfil').classList.add('on');
