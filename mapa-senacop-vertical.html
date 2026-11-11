@@ -665,6 +665,45 @@ html.h .qr .q{width:4.6em;height:4.6em;border-radius:.8vh;padding:.4vh}
     else if (acao === 'admin-fechar') $('admin').classList.remove('on');
   });
   document.addEventListener('touchstart', mexeu, { passive: true });
+  /* rolagem por arrastar: funciona com toque real e com lousas/TVs que mandam o toque como mouse */
+  var arrastou = false;
+  function arrastavel(el){
+    var y0 = 0, s0 = 0, ativo = false, ult = 0, tUlt = 0, vel = 0, anim = 0;
+    el.style.touchAction = 'none';
+    el.addEventListener('pointerdown', function(e){
+      if (e.button > 0) return;
+      cancelAnimationFrame(anim); ativo = true; arrastou = false;
+      y0 = ult = e.clientY; s0 = el.scrollTop; tUlt = performance.now(); vel = 0;
+    });
+    window.addEventListener('pointermove', function(e){
+      if (!ativo) return;
+      var dy = e.clientY - y0;
+      if (!arrastou && Math.abs(dy) > 8) arrastou = true;
+      if (arrastou){
+        el.scrollTop = s0 - dy;
+        var agora = performance.now(), dt = agora - tUlt;
+        if (dt > 0) vel = (e.clientY - ult) / dt;
+        ult = e.clientY; tUlt = agora;
+      }
+    });
+    function solta(){
+      if (!ativo) return; ativo = false;
+      if (!arrastou) return;
+      (function inercia(){
+        if (Math.abs(vel) < 0.02) return;
+        el.scrollTop -= vel * 16; vel *= 0.94;
+        anim = requestAnimationFrame(inercia);
+      })();
+      setTimeout(function(){ arrastou = false; }, 60);
+    }
+    window.addEventListener('pointerup', solta);
+    window.addEventListener('pointercancel', solta);
+  }
+  /* um arrasto não pode virar clique em item ou foto */
+  document.addEventListener('click', function(e){ if (arrastou){ e.stopPropagation(); e.preventDefault(); arrastou = false; } }, true);
+  arrastavel(document.querySelector('.lista'));
+  arrastavel(document.querySelector('.perfil .pc'));
+
   document.addEventListener('keydown', function(e){ if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('item')){ e.preventDefault(); e.target.click(); } if (e.key === 'Escape') fecharPerfil(); });
   $('pin-campo').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); if ($('pin-campo').value === PIN){ $('pin').classList.remove('on'); abrirAdmin(); } else toast('PIN incorreto'); } });
 
